@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "word-add-diagram": {
+      "commandName": "Project",
+      "commandLineArgs": "\"c:/Users/jgilliland/Adult-sheep-lambs.jpg\" \"this is the alt text\""
+    }
+  }
+}
