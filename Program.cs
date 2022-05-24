@@ -1,34 +1,47 @@
 ﻿namespace word_add_diagram
 {
     using System;
+    using System.CommandLine;
+    using System.CommandLine.NamingConventionBinder;
+    using System.CommandLine.Parsing;
     using System.IO;
 
     class Program
     {
-        static int Main(string[] args)
+        static int Main(string path = "~/downloads/test.png", string altText = "")
         {
-            var path = args[0];
-            var altText = args[1];
+            var pathArgument = new Argument<string>("path", "The path to the image to add to our document.");
+            var altTextArgument = new Argument<string>("alt-text", "The alt text for the image we will add to our document.");
 
-            if (string.IsNullOrEmpty(path)) return Result.EmptyImagePath;
-            if (!File.Exists(path)) return Result.ImagePathNotFound;
-            if (string.IsNullOrEmpty(altText)) return Result.EmptyAltText;
+            var cmd = new RootCommand {
+                    pathArgument,
+                    altTextArgument
+                };
+            cmd.Description = "The base command for this utility, adding an image with alt text to the open word document.";
+            cmd.Handler = CommandHandler.Create<string, string>(AddWordImageCommandHandler);
 
-            var doc = WordHelper.GetOpenDocument();
-            if (doc == null) return Result.NoOpenWordDocument;
-
-            var success = WordHelper.AddImageAtCursor(doc, path, altText);
-            if (!success) return Result.FailedToAddImage;
-
-            // done
-            EndAndWait();
-            return Result.Success;
+            return cmd.Invoke(new [] {path, altText});
         }
 
         static void EndAndWait(string msg = "Press Enter to exit...")
         {
             Console.WriteLine(msg);
             Console.ReadLine();
+        }
+
+        private static int AddWordImageCommandHandler(string imagePath, string altText)
+        {
+            if (string.IsNullOrEmpty(imagePath)) return Result.EmptyImagePath;
+            if (!File.Exists(imagePath)) return Result.ImagePathNotFound;
+            if (string.IsNullOrEmpty(altText)) return Result.EmptyAltText;
+
+            var doc = WordHelper.GetOpenDocument();
+            if (doc == null) return Result.NoOpenWordDocument;
+
+            var success = WordHelper.AddImageAtCursor(doc, imagePath, altText);
+            if (!success) return Result.FailedToAddImage;
+
+            return Result.Success;
         }
     }
 
